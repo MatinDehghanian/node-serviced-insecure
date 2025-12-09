@@ -1,0 +1,111 @@
+# GoReleaser configuration for node-serviced
+# Documentation: https://goreleaser.com
+
+version: 2
+
+project_name: node-serviced
+
+before:
+  hooks:
+    # Ensure dependencies are up to date
+    - go mod tidy
+    - go mod download
+
+builds:
+  - id: node-serviced
+    main: .
+    binary: node-serviced
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - "6"
+      - "7"
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    flags:
+      - -trimpath
+
+archives:
+  - id: default
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    builds:
+      - node-serviced
+    rlcp: true
+    files:
+      - README.md
+      - LICENSE*
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - 'typo'
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: Bug Fixes
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: Performance Improvements
+      regexp: '^.*?perf(\([[:word:]]+\))??!?:.+$'
+      order: 2
+    - title: Others
+      order: 999
+
+release:
+  github:
+    owner: PasarGuard
+    name: node-serviced
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## node-serviced Release {{ .Tag }}
+  footer: |
+    **Full Changelog**: https://github.com/PasarGuard/node-serviced/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+    ---
+
+    **Verify checksums**: Download `checksums.txt` and verify with `sha256sum -c checksums.txt`
+
+# Optional: Generate Software Bill of Materials
+# sboms:
+#   - artifacts: archive
+
+# Optional: Sign binaries (requires signing keys)
+# signs:
+#   - cmd: cosign
+#     artifacts: checksum
+#     args:
+#       - sign-blob
+#       - --output-signature=${signature}
+#       - ${artifact}
