@@ -28,6 +28,7 @@ type config struct {
 	SSLCert string
 	SSLKey  string
 	EnvFile string
+	NoTLS   bool
 }
 
 type certInfo struct {
@@ -123,6 +124,7 @@ func loadConfig() (config, error) {
 	cfg.APIKey = os.Getenv("API_KEY")
 	cfg.SSLCert = os.Getenv("SSL_CERT_FILE")
 	cfg.SSLKey = os.Getenv("SSL_KEY_FILE")
+	cfg.NoTLS = os.Getenv("NO_TLS") == "true"
 	if port := os.Getenv("API_PORT"); port != "" {
 		cfg.APIPort = port
 	}
@@ -133,14 +135,16 @@ func loadConfig() (config, error) {
 	if cfg.APIKey == "" {
 		return cfg, errors.New("API_KEY must be set in the env file")
 	}
-	if cfg.SSLCert == "" || cfg.SSLKey == "" {
-		return cfg, errors.New("TLS required: set SSL_CERT_FILE and SSL_KEY_FILE in the env file")
-	}
-	if _, err := os.Stat(cfg.SSLCert); err != nil {
-		return cfg, fmt.Errorf("cannot read SSL_CERT_FILE: %s", cfg.SSLCert)
-	}
-	if _, err := os.Stat(cfg.SSLKey); err != nil {
-		return cfg, fmt.Errorf("cannot read SSL_KEY_FILE: %s", cfg.SSLKey)
+	if !cfg.NoTLS {
+		if cfg.SSLCert == "" || cfg.SSLKey == "" {
+			return cfg, errors.New("TLS required: set SSL_CERT_FILE and SSL_KEY_FILE in the env file, or set NO_TLS=true")
+		}
+		if _, err := os.Stat(cfg.SSLCert); err != nil {
+			return cfg, fmt.Errorf("cannot read SSL_CERT_FILE: %s", cfg.SSLCert)
+		}
+		if _, err := os.Stat(cfg.SSLKey); err != nil {
+			return cfg, fmt.Errorf("cannot read SSL_KEY_FILE: %s", cfg.SSLKey)
+		}
 	}
 
 	return cfg, nil
