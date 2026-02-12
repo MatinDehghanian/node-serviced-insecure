@@ -44,11 +44,8 @@ archives:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
--    builds:
--      - node-serviced
--    rlcp: true
-+    ids:
-+      - node-serviced
+    ids:
+      - node-serviced
     files:
       - README.md
       - LICENSE*
@@ -85,15 +82,15 @@ changelog:
 
 release:
   github:
-    owner: PasarGuard
-    name: node-serviced
+    owner: MatinDehghanian
+    name: node-serviced-insecure
   draft: false
   prerelease: auto
   mode: replace
   header: |
     ## node-serviced Release {{ .Tag }}
   footer: |
-    **Full Changelog**: https://github.com/PasarGuard/node-serviced/compare/{{ .PreviousTag }}...{{ .Tag }}
+    **Full Changelog**: https://github.com/MatinDehghanian/node-serviced-insecure/compare/{{ .PreviousTag }}...{{ .Tag }}
 
     ---
 
